@@ -98,6 +98,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Clarity — Daily Life Organizer" },
+      { name: "description", content: "Clarity: Your Daily Compass helps you organize, prioritize, and manage your day." },
+      { property: "og:description", content: "Clarity: Your Daily Compass helps you organize, prioritize, and manage your day." },
+      { name: "twitter:description", content: "Clarity: Your Daily Compass helps you organize, prioritize, and manage your day." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ccb68855-2128-48be-8ab6-52db611d3505/id-preview-70601112--ddfd3b34-0717-4931-bdb9-c8abf146df30.lovable.app-1782775330096.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ccb68855-2128-48be-8ab6-52db611d3505/id-preview-70601112--ddfd3b34-0717-4931-bdb9-c8abf146df30.lovable.app-1782775330096.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
