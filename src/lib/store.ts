@@ -1,33 +1,89 @@
 import { useEffect, useSyncExternalStore } from "react";
 
 export type Priority = "high" | "medium" | "low";
-export type Recurrence = "none" | "daily" | "weekly";
+export type Recurrence = "none" | "daily" | "weekly" | "monthly";
 
-export interface Task {
+export type ItemType =
+  | "task"
+  | "financial"
+  | "appointment"
+  | "shopping"
+  | "habit"
+  | "bill"
+  | "goal"
+  | "note"
+  | "idea";
+
+export interface FinancialDetails {
+  direction: "owed_to_me" | "i_owe";
+  amount: number;
+  currency: string;
+  person: string;
+}
+export interface AppointmentDetails {
+  location?: string;
+  withWhom?: string;
+}
+export interface ShoppingDetails {
+  quantity?: number;
+  store?: string;
+  price?: number;
+}
+export interface BillDetails {
+  amount: number;
+  payee: string;
+  account?: string;
+}
+export interface GoalDetails {
+  targetDate?: number;
+  progress?: number; // 0–100
+}
+export interface HabitDetails {
+  streak?: number;
+  lastCompletedDay?: string | null;
+}
+
+export type ItemDetails =
+  | { type: "task"; data?: Record<string, never> }
+  | { type: "financial"; data: FinancialDetails }
+  | { type: "appointment"; data: AppointmentDetails }
+  | { type: "shopping"; data: ShoppingDetails }
+  | { type: "bill"; data: BillDetails }
+  | { type: "goal"; data: GoalDetails }
+  | { type: "habit"; data: HabitDetails }
+  | { type: "note"; data?: { body?: string } }
+  | { type: "idea"; data?: { body?: string } };
+
+export interface Item {
   id: string;
+  type: ItemType;
   title: string;
+  notes?: string;
   priority: Priority;
-  dueAt: number | null; // ms epoch
+  scheduledFor: number | null; // any day pin (start of day ms)
+  dueAt: number | null; // specific moment
   createdAt: number;
   completedAt: number | null;
-  pinnedForToday: boolean;
-  brainDump: boolean; // unprioritized capture
   recurrence: Recurrence;
+  details: Record<string, unknown>;
+  tags: string[];
 }
 
 export interface AppState {
-  tasks: Task[];
+  items: Item[];
   theme: "dark" | "light";
   focusMode: boolean;
+  currency: string;
   streak: { count: number; lastClearedDay: string | null };
 }
 
-const STORAGE_KEY = "clarity:v1";
+const STORAGE_KEY = "clarity:v2";
 
 const defaultState: AppState = {
-  tasks: [],
-  theme: "dark",
+  items: [],
+  theme: "light",
   focusMode: false,
+  currency: "USD",
   streak: { count: 0, lastClearedDay: null },
 };
 
@@ -36,8 +92,7 @@ function load(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState;
-    const parsed = JSON.parse(raw);
-    return { ...defaultState, ...parsed };
+    return { ...defaultState, ...JSON.parse(raw) };
   } catch {
     return defaultState;
   }
@@ -47,31 +102,37 @@ let state: AppState = defaultState;
 let hydrated = false;
 const listeners = new Set<() => void>();
 
-function emit() {
-  for (const l of listeners) l();
-}
-
-function persist() {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // ignore
+const emit = () => listeners.forEach((l) => l());
+const persist = () => {
+  if (typeof window !== "undefined") {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ }
   }
-}
-
+};
 function setState(updater: (s: AppState) => AppState) {
   state = updater(state);
   persist();
   emit();
 }
 
+export function applyTheme(theme: "dark" | "light") {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  if (theme === "dark") {
+    root.classList.add("dark");
+    root.classList.remove("light");
+    root.style.colorScheme = "dark";
+  } else {
+    root.classList.add("light");
+    root.classList.remove("dark");
+    root.style.colorScheme = "light";
+  }
+}
+
 function hydrate() {
   if (hydrated) return;
   hydrated = true;
   state = load();
-  // Roll recurring completed tasks back to active for the new day
-  state = { ...state, tasks: rollRecurringTasks(state.tasks) };
+  state = { ...state, items: rollRecurring(state.items) };
   persist();
   applyTheme(state.theme);
   emit();
@@ -83,10 +144,7 @@ function subscribe(listener: () => void) {
 }
 
 export function useStore<T>(selector: (s: AppState) => T): T {
-  // Hydrate once on the client
-  useEffect(() => {
-    hydrate();
-  }, []);
+  useEffect(() => { hydrate(); }, []);
   return useSyncExternalStore(
     subscribe,
     () => selector(state),
@@ -94,21 +152,15 @@ export function useStore<T>(selector: (s: AppState) => T): T {
   );
 }
 
-// ---- Theme ----
-export function applyTheme(theme: "dark" | "light") {
-  if (typeof document === "undefined") return;
-  const root = document.documentElement;
-  if (theme === "light") {
-    root.classList.add("light");
-    root.classList.remove("dark");
-    root.style.colorScheme = "light";
-  } else {
-    root.classList.add("dark");
-    root.classList.remove("light");
-    root.style.colorScheme = "dark";
-  }
+export function useHydrated(): boolean {
+  return useSyncExternalStore(
+    subscribe,
+    () => hydrated,
+    () => false,
+  );
 }
 
+// ---- Theme ----
 export function toggleTheme() {
   setState((s) => {
     const theme = s.theme === "dark" ? "light" : "dark";
@@ -116,147 +168,160 @@ export function toggleTheme() {
     return { ...s, theme };
   });
 }
-
-// ---- Focus mode ----
 export function toggleFocusMode() {
   setState((s) => ({ ...s, focusMode: !s.focusMode }));
 }
+export function setCurrency(currency: string) {
+  setState((s) => ({ ...s, currency }));
+}
 
-// ---- Helpers ----
-const dayKey = (d: Date | number = new Date()) => {
-  const date = typeof d === "number" ? new Date(d) : d;
-  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+// ---- helpers ----
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+
+export const startOfDay = (ts: number) => {
+  const d = new Date(ts);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+};
+export const dayKey = (ts: number | Date = Date.now()) => {
+  const d = typeof ts === "number" ? new Date(ts) : ts;
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 };
 
-const todayKey = () => dayKey(new Date());
-
-function rollRecurringTasks(tasks: Task[]): Task[] {
-  const today = todayKey();
-  return tasks.map((t) => {
-    if (t.recurrence === "none" || !t.completedAt) return t;
-    const completedDay = dayKey(t.completedAt);
-    if (completedDay === today) return t;
-    if (t.recurrence === "daily") {
-      return { ...t, completedAt: null };
-    }
-    if (t.recurrence === "weekly") {
-      const diff = Date.now() - t.completedAt;
-      if (diff > 7 * 24 * 60 * 60 * 1000) return { ...t, completedAt: null };
-    }
-    return t;
+function rollRecurring(items: Item[]): Item[] {
+  const today = dayKey();
+  return items.map((it) => {
+    if (it.recurrence === "none" || !it.completedAt) return it;
+    if (dayKey(it.completedAt) === today) return it;
+    const elapsed = Date.now() - it.completedAt;
+    const reset =
+      (it.recurrence === "daily") ||
+      (it.recurrence === "weekly" && elapsed > 7 * 86400000) ||
+      (it.recurrence === "monthly" && elapsed > 28 * 86400000);
+    return reset ? { ...it, completedAt: null } : it;
   });
 }
 
-const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-
-// ---- Task actions ----
-export function addTask(input: {
+// ---- CRUD ----
+export interface NewItemInput {
   title: string;
+  type?: ItemType;
   priority?: Priority;
-  brainDump?: boolean;
+  scheduledFor?: number | null;
   dueAt?: number | null;
-  pinnedForToday?: boolean;
   recurrence?: Recurrence;
-}) {
+  notes?: string;
+  details?: Record<string, unknown>;
+  tags?: string[];
+}
+
+export function addItem(input: NewItemInput): Item | undefined {
   const title = input.title.trim();
-  if (!title) return;
-  const task: Task = {
+  if (!title) return undefined;
+  const item: Item = {
     id: uid(),
+    type: input.type ?? "task",
     title,
+    notes: input.notes,
     priority: input.priority ?? "medium",
+    scheduledFor: input.scheduledFor ?? null,
     dueAt: input.dueAt ?? null,
     createdAt: Date.now(),
     completedAt: null,
-    pinnedForToday: input.pinnedForToday ?? !input.brainDump,
-    brainDump: input.brainDump ?? false,
     recurrence: input.recurrence ?? "none",
+    details: input.details ?? {},
+    tags: input.tags ?? [],
   };
-  setState((s) => ({ ...s, tasks: [task, ...s.tasks] }));
+  setState((s) => ({ ...s, items: [item, ...s.items] }));
+  return item;
 }
 
-export function updateTask(id: string, patch: Partial<Task>) {
+export function updateItem(id: string, patch: Partial<Item>) {
   setState((s) => ({
     ...s,
-    tasks: s.tasks.map((t) => (t.id === id ? { ...t, ...patch } : t)),
+    items: s.items.map((i) => (i.id === id ? { ...i, ...patch } : i)),
   }));
 }
-
+export function updateDetails(id: string, patch: Record<string, unknown>) {
+  setState((s) => ({
+    ...s,
+    items: s.items.map((i) =>
+      i.id === id ? { ...i, details: { ...i.details, ...patch } } : i,
+    ),
+  }));
+}
 export function cyclePriority(id: string) {
   setState((s) => ({
     ...s,
-    tasks: s.tasks.map((t) => {
-      if (t.id !== id) return t;
+    items: s.items.map((i) => {
+      if (i.id !== id) return i;
       const next: Priority =
-        t.priority === "high" ? "medium" : t.priority === "medium" ? "low" : "high";
-      return { ...t, priority: next };
+        i.priority === "high" ? "medium" : i.priority === "medium" ? "low" : "high";
+      return { ...i, priority: next };
     }),
   }));
 }
-
 export function toggleComplete(id: string) {
   setState((s) => {
-    const tasks = s.tasks.map((t) =>
-      t.id === id ? { ...t, completedAt: t.completedAt ? null : Date.now() } : t,
+    const items = s.items.map((i) =>
+      i.id === id ? { ...i, completedAt: i.completedAt ? null : Date.now() } : i,
     );
-    const streak = recomputeStreak(tasks, s.streak);
-    return { ...s, tasks, streak };
+    return { ...s, items, streak: recomputeStreak(items, s.streak) };
   });
 }
-
-export function deleteTask(id: string) {
-  setState((s) => ({ ...s, tasks: s.tasks.filter((t) => t.id !== id) }));
+export function deleteItem(id: string) {
+  setState((s) => ({ ...s, items: s.items.filter((i) => i.id !== id) }));
+}
+export function scheduleForToday(id: string) {
+  updateItem(id, { scheduledFor: startOfDay(Date.now()) });
 }
 
-export function promoteFromBrainDump(id: string, priority: Priority = "medium") {
-  updateTask(id, { brainDump: false, pinnedForToday: true, priority });
-}
-
-function recomputeStreak(tasks: Task[], current: AppState["streak"]): AppState["streak"] {
-  const today = todayKey();
-  const todayHigh = tasks.filter((t) => isTodayTask(t) && t.priority === "high");
-  if (todayHigh.length === 0) return current;
-  const allDone = todayHigh.every((t) => t.completedAt);
-  if (!allDone) return current;
+function recomputeStreak(items: Item[], current: AppState["streak"]): AppState["streak"] {
+  const today = dayKey();
+  const todays = items.filter((i) => isTodayItem(i) && i.priority === "high" && i.type !== "note" && i.type !== "idea");
+  if (todays.length === 0) return current;
+  if (!todays.every((t) => t.completedAt)) return current;
   if (current.lastClearedDay === today) return current;
-  // Continue streak if last cleared was yesterday
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yKey = dayKey(yesterday);
-  const count = current.lastClearedDay === yKey ? current.count + 1 : 1;
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  const count = current.lastClearedDay === dayKey(y) ? current.count + 1 : 1;
   return { count, lastClearedDay: today };
 }
 
-// ---- Selectors / sorting ----
-const PRIORITY_RANK: Record<Priority, number> = { high: 0, medium: 1, low: 2 };
+// ---- selectors / sorting ----
+const PR: Record<Priority, number> = { high: 0, medium: 1, low: 2 };
 
-export function sortTasks(tasks: Task[]) {
-  return [...tasks].sort((a, b) => {
-    if (PRIORITY_RANK[a.priority] !== PRIORITY_RANK[b.priority])
-      return PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
-    const aDue = a.dueAt ?? Number.POSITIVE_INFINITY;
-    const bDue = b.dueAt ?? Number.POSITIVE_INFINITY;
+export function sortItems(items: Item[]) {
+  return [...items].sort((a, b) => {
+    if (PR[a.priority] !== PR[b.priority]) return PR[a.priority] - PR[b.priority];
+    const aDue = a.dueAt ?? a.scheduledFor ?? Number.POSITIVE_INFINITY;
+    const bDue = b.dueAt ?? b.scheduledFor ?? Number.POSITIVE_INFINITY;
     if (aDue !== bDue) return aDue - bDue;
     return b.createdAt - a.createdAt;
   });
 }
 
-export function isTodayTask(t: Task): boolean {
-  if (t.brainDump) return false;
-  if (t.pinnedForToday) return true;
-  if (t.dueAt) {
-    const d = new Date(t.dueAt);
-    const now = new Date();
-    if (
-      d.getFullYear() === now.getFullYear() &&
-      d.getMonth() === now.getMonth() &&
-      d.getDate() === now.getDate()
-    )
-      return true;
-    if (t.dueAt < Date.now() && !t.completedAt) return true; // overdue still shows today
+export function isTodayItem(i: Item): boolean {
+  if (i.type === "idea") return false;
+  const today = dayKey();
+  if (i.scheduledFor && dayKey(i.scheduledFor) === today) return true;
+  if (i.dueAt) {
+    if (dayKey(i.dueAt) === today) return true;
+    if (!i.completedAt && i.dueAt < Date.now()) return true; // overdue
   }
   return false;
 }
 
-export function isOverdue(t: Task): boolean {
-  return !!t.dueAt && !t.completedAt && t.dueAt < Date.now();
+export function isOverdue(i: Item): boolean {
+  if (i.completedAt) return false;
+  if (i.dueAt && i.dueAt < Date.now()) return true;
+  if (i.scheduledFor && i.scheduledFor < startOfDay(Date.now())) return true;
+  return false;
+}
+
+export function isUpcoming(i: Item, days: number = 14): boolean {
+  if (i.completedAt) return false;
+  const horizon = startOfDay(Date.now()) + days * 86400000;
+  const when = i.dueAt ?? i.scheduledFor;
+  if (!when) return false;
+  return when >= startOfDay(Date.now()) && when <= horizon;
 }
