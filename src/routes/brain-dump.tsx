@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/clarity/AppShell";
-import { QuickCapture } from "@/components/clarity/QuickCapture";
-import { TaskList } from "@/components/clarity/TaskList";
+import { Capture } from "@/components/clarity/Capture";
+import { ItemList } from "@/components/clarity/ItemList";
 import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/brain-dump")({
@@ -15,25 +15,19 @@ export const Route = createFileRoute("/brain-dump")({
 });
 
 function BrainDumpPage() {
-  const tasks = useStore((s) => s.tasks.filter((t) => t.brainDump && !t.completedAt));
+  const ideas = useStore((s) => s.items.filter((i) => (i.type === "idea" || i.type === "note") && !i.completedAt));
   return (
     <AppShell>
       <h1 className="font-display text-3xl font-bold tracking-tight mb-1">Brain dump</h1>
       <p className="text-sm text-muted-foreground mb-5">
-        Park anything here. Promote it to Today when you're ready.
+        Stash thoughts, ideas, and reminders without committing to a day.
       </p>
 
       <div className="mb-6">
-        <QuickCapture
-          defaultBrainDump
-          placeholder="Don't lose this thought…"
-        />
+        <Capture defaultType="idea" scheduleToday={false} placeholder="Don't lose this thought…" />
       </div>
 
-      <TaskList
-        tasks={tasks}
-        empty="Empty mind. Capture stray thoughts above."
-      />
+      <ItemList items={ideas} empty="Empty mind. Capture stray thoughts above." />
     </AppShell>
   );
 }
