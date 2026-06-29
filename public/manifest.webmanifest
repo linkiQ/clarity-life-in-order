@@ -1,0 +1,10 @@
+{
+  "name": "Clarity — Daily Life Organizer",
+  "short_name": "Clarity",
+  "description": "Capture, prioritize, and clear your day.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1726",
+  "theme_color": "#1a1726",
+  "icons": []
+}
