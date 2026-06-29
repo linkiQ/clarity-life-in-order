@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UpcomingRouteImport } from './routes/upcoming'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as BrainDumpRouteImport } from './routes/brain-dump'
 import { Route as AllRouteImport } from './routes/all'
 import { Route as IndexRouteImport } from './routes/index'
 
+const UpcomingRoute = UpcomingRouteImport.update({
+  id: '/upcoming',
+  path: '/upcoming',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/all': typeof AllRoute
   '/brain-dump': typeof BrainDumpRoute
   '/settings': typeof SettingsRoute
+  '/upcoming': typeof UpcomingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/all': typeof AllRoute
   '/brain-dump': typeof BrainDumpRoute
   '/settings': typeof SettingsRoute
+  '/upcoming': typeof UpcomingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/all': typeof AllRoute
   '/brain-dump': typeof BrainDumpRoute
   '/settings': typeof SettingsRoute
+  '/upcoming': typeof UpcomingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/all' | '/brain-dump' | '/settings'
+  fullPaths: '/' | '/all' | '/brain-dump' | '/settings' | '/upcoming'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/all' | '/brain-dump' | '/settings'
-  id: '__root__' | '/' | '/all' | '/brain-dump' | '/settings'
+  to: '/' | '/all' | '/brain-dump' | '/settings' | '/upcoming'
+  id: '__root__' | '/' | '/all' | '/brain-dump' | '/settings' | '/upcoming'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,10 +76,18 @@ export interface RootRouteChildren {
   AllRoute: typeof AllRoute
   BrainDumpRoute: typeof BrainDumpRoute
   SettingsRoute: typeof SettingsRoute
+  UpcomingRoute: typeof UpcomingRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/upcoming': {
+      id: '/upcoming'
+      path: '/upcoming'
+      fullPath: '/upcoming'
+      preLoaderRoute: typeof UpcomingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   AllRoute: AllRoute,
   BrainDumpRoute: BrainDumpRoute,
   SettingsRoute: SettingsRoute,
+  UpcomingRoute: UpcomingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
