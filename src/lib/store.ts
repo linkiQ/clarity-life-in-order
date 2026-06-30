@@ -75,6 +75,9 @@ export interface AppState {
   focusMode: boolean;
   currency: string;
   streak: { count: number; lastClearedDay: string | null };
+  userId: string | null;
+  cloudSyncing: boolean;
+  migrationPending: boolean; // true when signed in with local items but cloud empty
 }
 
 const STORAGE_KEY = "clarity:v2";
@@ -85,6 +88,9 @@ const defaultState: AppState = {
   focusMode: false,
   currency: "USD",
   streak: { count: 0, lastClearedDay: null },
+  userId: null,
+  cloudSyncing: false,
+  migrationPending: false,
 };
 
 function load(): AppState {
