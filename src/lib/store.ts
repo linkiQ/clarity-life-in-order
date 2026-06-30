@@ -75,6 +75,9 @@ export interface AppState {
   focusMode: boolean;
   currency: string;
   streak: { count: number; lastClearedDay: string | null };
+  userId: string | null;
+  cloudSyncing: boolean;
+  migrationPending: boolean; // true when signed in with local items but cloud empty
 }
 
 const STORAGE_KEY = "clarity:v2";
@@ -85,6 +88,9 @@ const defaultState: AppState = {
   focusMode: false,
   currency: "USD",
   streak: { count: 0, lastClearedDay: null },
+  userId: null,
+  cloudSyncing: false,
+  migrationPending: false,
 };
 
 function load(): AppState {
@@ -105,7 +111,12 @@ const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 const persist = () => {
   if (typeof window !== "undefined") {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ }
+    try {
+      // Don't persist transient runtime fields.
+      const { userId: _u, cloudSyncing: _c, migrationPending: _m, ...rest } = state;
+      void _u; void _c; void _m;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
+    } catch { /* ignore */ }
   }
 };
 function setState(updater: (s: AppState) => AppState) {
@@ -233,6 +244,7 @@ export function addItem(input: NewItemInput): Item | undefined {
     tags: input.tags ?? [],
   };
   setState((s) => ({ ...s, items: [item, ...s.items] }));
+  syncUpsert(item);
   return item;
 }
 
@@ -241,6 +253,8 @@ export function updateItem(id: string, patch: Partial<Item>) {
     ...s,
     items: s.items.map((i) => (i.id === id ? { ...i, ...patch } : i)),
   }));
+  const found = state.items.find((i) => i.id === id);
+  if (found) syncUpsert(found);
 }
 export function updateDetails(id: string, patch: Record<string, unknown>) {
   setState((s) => ({
@@ -249,6 +263,8 @@ export function updateDetails(id: string, patch: Record<string, unknown>) {
       i.id === id ? { ...i, details: { ...i.details, ...patch } } : i,
     ),
   }));
+  const found = state.items.find((i) => i.id === id);
+  if (found) syncUpsert(found);
 }
 export function cyclePriority(id: string) {
   setState((s) => ({
@@ -260,6 +276,8 @@ export function cyclePriority(id: string) {
       return { ...i, priority: next };
     }),
   }));
+  const found = state.items.find((i) => i.id === id);
+  if (found) syncUpsert(found);
 }
 export function toggleComplete(id: string) {
   setState((s) => {
@@ -268,12 +286,69 @@ export function toggleComplete(id: string) {
     );
     return { ...s, items, streak: recomputeStreak(items, s.streak) };
   });
+  const found = state.items.find((i) => i.id === id);
+  if (found) syncUpsert(found);
 }
 export function deleteItem(id: string) {
   setState((s) => ({ ...s, items: s.items.filter((i) => i.id !== id) }));
+  syncDelete(id);
 }
 export function scheduleForToday(id: string) {
   updateItem(id, { scheduledFor: startOfDay(Date.now()) });
+}
+
+// ---- cloud sync ----
+import { fetchCloudItems, upsertCloudItem, bulkUpsert, deleteCloudItem, deleteAllCloudItems } from "./cloudSync";
+
+function syncUpsert(item: Item) {
+  if (!state.userId) return;
+  void upsertCloudItem(state.userId, item);
+}
+function syncDelete(id: string) {
+  if (!state.userId) return;
+  void deleteCloudItem(state.userId, id);
+}
+
+export async function bindUser(userId: string | null) {
+  if (state.userId === userId) return;
+  if (!userId) {
+    setState((s) => ({ ...s, userId: null, migrationPending: false }));
+    return;
+  }
+  setState((s) => ({ ...s, userId, cloudSyncing: true }));
+  try {
+    const cloud = await fetchCloudItems(userId);
+    const local = state.items;
+    if (cloud.length === 0 && local.length > 0) {
+      // Ask user what to do with local items
+      setState((s) => ({ ...s, migrationPending: true, cloudSyncing: false }));
+      return;
+    }
+    // Cloud has items — replace local with cloud (cloud is source of truth)
+    setState((s) => ({ ...s, items: cloud, cloudSyncing: false, migrationPending: false }));
+  } catch (e) {
+    console.error("cloud load failed", e);
+    setState((s) => ({ ...s, cloudSyncing: false }));
+  }
+}
+
+export async function resolveMigration(keep: boolean) {
+  const uid = state.userId;
+  if (!uid) {
+    setState((s) => ({ ...s, migrationPending: false }));
+    return;
+  }
+  if (keep) {
+    await bulkUpsert(uid, state.items);
+  } else {
+    await deleteAllCloudItems(uid);
+    setState((s) => ({ ...s, items: [] }));
+  }
+  setState((s) => ({ ...s, migrationPending: false }));
+}
+
+export function clearLocalOnly() {
+  setState((s) => ({ ...s, items: [], streak: { count: 0, lastClearedDay: null } }));
 }
 
 function recomputeStreak(items: Item[], current: AppState["streak"]): AppState["streak"] {
