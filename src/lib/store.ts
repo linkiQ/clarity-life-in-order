@@ -111,7 +111,12 @@ const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 const persist = () => {
   if (typeof window !== "undefined") {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ }
+    try {
+      // Don't persist transient runtime fields.
+      const { userId: _u, cloudSyncing: _c, migrationPending: _m, ...rest } = state;
+      void _u; void _c; void _m;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
+    } catch { /* ignore */ }
   }
 };
 function setState(updater: (s: AppState) => AppState) {
