@@ -1,33 +1,27 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Item } from "./store";
 
+// JSONB column — cast to any to bypass strict Json type.
+type Row = { id: string; user_id: string; data: unknown };
+
 export async function fetchCloudItems(userId: string): Promise<Item[]> {
-  const { data, error } = await supabase
-    .from("items")
-    .select("data")
-    .eq("user_id", userId);
+  const { data, error } = await supabase.from("items").select("data").eq("user_id", userId);
   if (error) throw error;
   return (data ?? []).map((row) => row.data as unknown as Item);
 }
 
 export async function upsertCloudItem(userId: string, item: Item) {
-  const { error } = await supabase
-    .from("items")
-    .upsert(
-      { id: item.id, user_id: userId, data: item as unknown as Record<string, unknown> },
-      { onConflict: "id" },
-    );
+  const row: Row = { id: item.id, user_id: userId, data: item };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await supabase.from("items").upsert(row as any, { onConflict: "id" });
   if (error) console.error("cloud upsert failed", error);
 }
 
 export async function bulkUpsert(userId: string, items: Item[]) {
   if (!items.length) return;
-  const rows = items.map((i) => ({
-    id: i.id,
-    user_id: userId,
-    data: i as unknown as Record<string, unknown>,
-  }));
-  const { error } = await supabase.from("items").upsert(rows, { onConflict: "id" });
+  const rows: Row[] = items.map((i) => ({ id: i.id, user_id: userId, data: i }));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await supabase.from("items").upsert(rows as any, { onConflict: "id" });
   if (error) console.error("cloud bulk upsert failed", error);
 }
 
