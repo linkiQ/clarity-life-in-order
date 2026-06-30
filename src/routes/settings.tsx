@@ -1,7 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Moon, Sun, Flame, Trash2, Wallet, ListChecks } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Moon, Sun, Flame, Trash2, Wallet, ListChecks, LogIn, LogOut, Cloud, UserCircle2 } from "lucide-react";
 import { AppShell } from "@/components/clarity/AppShell";
-import { setCurrency, toggleTheme, useStore } from "@/lib/store";
+import { setCurrency, toggleTheme, useStore, clearLocalOnly } from "@/lib/store";
+import { useAuth, signOut } from "@/lib/auth";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -18,22 +19,68 @@ function SettingsPage() {
   const streak = useStore((s) => s.streak);
   const total = useStore((s) => s.items.length);
   const currency = useStore((s) => s.currency);
+  const userId = useStore((s) => s.userId);
+  const { user } = useAuth();
   const isDark = theme === "dark";
 
   function reset() {
     if (typeof window === "undefined") return;
-    if (confirm("Delete all items and reset Clarity?")) {
-      localStorage.removeItem("clarity:v2");
-      window.location.reload();
+    if (confirm("Delete all items on this device?")) {
+      clearLocalOnly();
     }
   }
 
+  const name = (user?.user_metadata?.name as string | undefined)
+    ?? (user?.user_metadata?.full_name as string | undefined)
+    ?? user?.email?.split("@")[0];
+
   return (
     <AppShell>
-      <h1 className="font-display text-3xl font-bold tracking-tight mb-6">Settings</h1>
+      <h1 className="font-display text-3xl font-semibold tracking-tight mb-8">Settings</h1>
 
-      <section className="rounded-2xl bg-card border border-border divide-y divide-border overflow-hidden">
-        <button onClick={toggleTheme} className="flex items-center w-full px-4 py-4 gap-3 text-left">
+      {/* Account */}
+      <section className="rounded-3xl bg-card border border-border overflow-hidden mb-6">
+        {userId ? (
+          <div className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="size-12 rounded-full bg-primary/15 grid place-items-center">
+                <UserCircle2 className="size-7 text-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold truncate">{name ?? "Signed in"}</div>
+                <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
+              </div>
+              <div className="inline-flex items-center gap-1 text-[11px] text-emerald-700 bg-tint-mint px-2 py-1 rounded-full">
+                <Cloud className="size-3" /> Synced
+              </div>
+            </div>
+            <button
+              onClick={() => void signOut()}
+              className="mt-4 w-full h-11 rounded-2xl border border-border text-sm font-medium inline-flex items-center justify-center gap-2 hover:bg-secondary transition"
+            >
+              <LogOut className="size-4" /> Sign out
+            </button>
+          </div>
+        ) : (
+          <Link to="/auth" className="block p-5 hover:bg-secondary/50 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="size-12 rounded-full bg-primary/15 grid place-items-center">
+                <LogIn className="size-6 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold">Sign in or create account</div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  Sync across devices · backed up securely
+                </div>
+              </div>
+            </div>
+          </Link>
+        )}
+      </section>
+
+      {/* Preferences */}
+      <section className="rounded-3xl bg-card border border-border divide-y divide-border overflow-hidden">
+        <button onClick={toggleTheme} className="flex items-center w-full px-5 py-4 gap-3 text-left hover:bg-secondary/40 transition">
           {isDark ? <Moon className="size-5 text-primary" /> : <Sun className="size-5 text-primary" />}
           <div className="flex-1 min-w-0">
             <div className="text-sm font-medium">Appearance</div>
@@ -42,7 +89,7 @@ function SettingsPage() {
           <div className="text-xs text-muted-foreground">Tap to switch</div>
         </button>
 
-        <div className="flex items-center px-4 py-4 gap-3">
+        <div className="flex items-center px-5 py-4 gap-3">
           <Wallet className="size-5 text-emerald-700" />
           <div className="flex-1 min-w-0">
             <div className="text-sm font-medium">Currency</div>
@@ -55,32 +102,29 @@ function SettingsPage() {
           />
         </div>
 
-        <div className="flex items-center px-4 py-4 gap-3">
+        <div className="flex items-center px-5 py-4 gap-3">
           <Flame className="size-5 text-orange-600" />
           <div className="flex-1 min-w-0">
             <div className="text-sm font-medium">Streak</div>
-            <div className="text-xs text-muted-foreground">Days clearing all your high priorities</div>
+            <div className="text-xs text-muted-foreground">Days clearing all high priorities</div>
           </div>
           <div className="text-lg font-semibold">{streak.count}</div>
         </div>
 
-        <div className="flex items-center px-4 py-4 gap-3">
+        <div className="flex items-center px-5 py-4 gap-3">
           <ListChecks className="size-5 text-violet-700" />
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium">Items stored</div>
-            <div className="text-xs text-muted-foreground">Saved on this device</div>
+            <div className="text-sm font-medium">Items</div>
+            <div className="text-xs text-muted-foreground">{userId ? "Synced to your account" : "Saved on this device"}</div>
           </div>
           <div className="text-lg font-semibold">{total}</div>
         </div>
       </section>
 
-      <section className="mt-6">
-        <button onClick={reset} className="w-full rounded-2xl bg-destructive/10 text-destructive py-3 text-sm font-medium inline-flex items-center justify-center gap-2">
-          <Trash2 className="size-4" /> Reset all data
+      <section className="mt-8">
+        <button onClick={reset} className="w-full rounded-2xl bg-destructive/10 text-destructive py-3 text-sm font-medium inline-flex items-center justify-center gap-2 hover:bg-destructive/15 transition">
+          <Trash2 className="size-4" /> Clear all items
         </button>
-        <p className="text-center text-xs text-muted-foreground mt-3">
-          Clarity stores everything locally on this device. No account needed.
-        </p>
       </section>
     </AppShell>
   );
