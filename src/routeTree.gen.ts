@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UpcomingRouteImport } from './routes/upcoming'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as BrainDumpRouteImport } from './routes/brain-dump'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AllRouteImport } from './routes/all'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -30,6 +31,11 @@ const BrainDumpRoute = BrainDumpRouteImport.update({
   path: '/brain-dump',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AllRoute = AllRouteImport.update({
   id: '/all',
   path: '/all',
@@ -44,6 +50,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/all': typeof AllRoute
+  '/auth': typeof AuthRoute
   '/brain-dump': typeof BrainDumpRoute
   '/settings': typeof SettingsRoute
   '/upcoming': typeof UpcomingRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/all': typeof AllRoute
+  '/auth': typeof AuthRoute
   '/brain-dump': typeof BrainDumpRoute
   '/settings': typeof SettingsRoute
   '/upcoming': typeof UpcomingRoute
@@ -59,21 +67,30 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/all': typeof AllRoute
+  '/auth': typeof AuthRoute
   '/brain-dump': typeof BrainDumpRoute
   '/settings': typeof SettingsRoute
   '/upcoming': typeof UpcomingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/all' | '/brain-dump' | '/settings' | '/upcoming'
+  fullPaths: '/' | '/all' | '/auth' | '/brain-dump' | '/settings' | '/upcoming'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/all' | '/brain-dump' | '/settings' | '/upcoming'
-  id: '__root__' | '/' | '/all' | '/brain-dump' | '/settings' | '/upcoming'
+  to: '/' | '/all' | '/auth' | '/brain-dump' | '/settings' | '/upcoming'
+  id:
+    | '__root__'
+    | '/'
+    | '/all'
+    | '/auth'
+    | '/brain-dump'
+    | '/settings'
+    | '/upcoming'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AllRoute: typeof AllRoute
+  AuthRoute: typeof AuthRoute
   BrainDumpRoute: typeof BrainDumpRoute
   SettingsRoute: typeof SettingsRoute
   UpcomingRoute: typeof UpcomingRoute
@@ -102,6 +119,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BrainDumpRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/all': {
       id: '/all'
       path: '/all'
@@ -122,6 +146,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AllRoute: AllRoute,
+  AuthRoute: AuthRoute,
   BrainDumpRoute: BrainDumpRoute,
   SettingsRoute: SettingsRoute,
   UpcomingRoute: UpcomingRoute,
