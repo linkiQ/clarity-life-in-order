@@ -122,7 +122,12 @@ function load(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState;
-    return { ...defaultState, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    return {
+      ...defaultState,
+      ...parsed,
+      appearance: { ...defaultAppearance, ...(parsed.appearance ?? {}) },
+    };
   } catch {
     return defaultState;
   }
