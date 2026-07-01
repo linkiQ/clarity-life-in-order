@@ -69,6 +69,20 @@ export interface Item {
   tags: string[];
 }
 
+export type Palette = "lilac" | "mint" | "peach" | "sky" | "sand" | "rose" | "mono";
+export type FontStyle = "modern" | "rounded" | "serif" | "mono";
+export type RadiusStyle = "soft" | "medium" | "sharp";
+export type Density = "cozy" | "compact";
+export type BgStyle = "aurora" | "clean" | "grain" | "grid";
+
+export interface Appearance {
+  palette: Palette;
+  font: FontStyle;
+  radius: RadiusStyle;
+  density: Density;
+  background: BgStyle;
+}
+
 export interface AppState {
   items: Item[];
   theme: "dark" | "light";
@@ -78,9 +92,18 @@ export interface AppState {
   userId: string | null;
   cloudSyncing: boolean;
   migrationPending: boolean; // true when signed in with local items but cloud empty
+  appearance: Appearance;
 }
 
 const STORAGE_KEY = "clarity:v2";
+
+const defaultAppearance: Appearance = {
+  palette: "lilac",
+  font: "modern",
+  radius: "soft",
+  density: "cozy",
+  background: "aurora",
+};
 
 const defaultState: AppState = {
   items: [],
@@ -91,6 +114,7 @@ const defaultState: AppState = {
   userId: null,
   cloudSyncing: false,
   migrationPending: false,
+  appearance: defaultAppearance,
 };
 
 function load(): AppState {
