@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Moon, Sun, Flame, Trash2, Wallet, ListChecks, LogIn, LogOut, Cloud, UserCircle2 } from "lucide-react";
+import { Moon, Sun, Flame, Trash2, Wallet, ListChecks, LogIn, LogOut, Cloud, UserCircle2, Palette, Type as TypeIcon, Square, Sparkles, RotateCcw } from "lucide-react";
 import { AppShell } from "@/components/clarity/AppShell";
-import { setCurrency, toggleTheme, useStore, clearLocalOnly } from "@/lib/store";
+import { setCurrency, toggleTheme, useStore, clearLocalOnly, setAppearance, resetAppearance, type Palette as PaletteKey, type FontStyle, type RadiusStyle, type Density, type BgStyle } from "@/lib/store";
 import { useAuth, signOut } from "@/lib/auth";
 
 export const Route = createFileRoute("/settings")({
