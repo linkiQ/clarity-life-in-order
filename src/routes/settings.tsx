@@ -78,12 +78,15 @@ function SettingsPage() {
         )}
       </section>
 
+      {/* Appearance customization */}
+      <AppearanceSection />
+
       {/* Preferences */}
-      <section className="rounded-3xl bg-card border border-border divide-y divide-border overflow-hidden">
+      <section className="rounded-3xl bg-card border border-border divide-y divide-border overflow-hidden mt-6">
         <button onClick={toggleTheme} className="flex items-center w-full px-5 py-4 gap-3 text-left hover:bg-secondary/40 transition">
           {isDark ? <Moon className="size-5 text-primary" /> : <Sun className="size-5 text-primary" />}
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium">Appearance</div>
+            <div className="text-sm font-medium">Theme</div>
             <div className="text-xs text-muted-foreground">{isDark ? "Soft dark" : "Pastel light"}</div>
           </div>
           <div className="text-xs text-muted-foreground">Tap to switch</div>
@@ -129,3 +132,152 @@ function SettingsPage() {
     </AppShell>
   );
 }
+
+const PALETTES: { key: PaletteKey; label: string; swatch: string }[] = [
+  { key: "lilac",  label: "Lilac",  swatch: "oklch(0.72 0.13 320)" },
+  { key: "mint",   label: "Mint",   swatch: "oklch(0.72 0.13 165)" },
+  { key: "peach",  label: "Peach",  swatch: "oklch(0.74 0.13 45)" },
+  { key: "sky",    label: "Sky",    swatch: "oklch(0.72 0.13 230)" },
+  { key: "rose",   label: "Rose",   swatch: "oklch(0.72 0.15 10)" },
+  { key: "sand",   label: "Sand",   swatch: "oklch(0.66 0.09 70)" },
+  { key: "mono",   label: "Mono",   swatch: "oklch(0.35 0.02 285)" },
+];
+const FONTS: { key: FontStyle; label: string; sample: string; family: string }[] = [
+  { key: "modern",  label: "Modern",  sample: "Aa", family: '-apple-system, "SF Pro Text", "Inter", system-ui, sans-serif' },
+  { key: "rounded", label: "Rounded", sample: "Aa", family: 'ui-rounded, "SF Pro Rounded", "Nunito", system-ui, sans-serif' },
+  { key: "serif",   label: "Serif",   sample: "Aa", family: '"Iowan Old Style", "Palatino", "Georgia", ui-serif, serif' },
+  { key: "mono",    label: "Mono",    sample: "Aa", family: 'ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", monospace' },
+];
+const RADII: { key: RadiusStyle; label: string; r: string }[] = [
+  { key: "soft",   label: "Soft",   r: "1rem" },
+  { key: "medium", label: "Medium", r: "0.5rem" },
+  { key: "sharp", label: "Sharp",   r: "0.15rem" },
+];
+const DENSITIES: { key: Density; label: string }[] = [
+  { key: "cozy", label: "Cozy" },
+  { key: "compact", label: "Compact" },
+];
+const BGS: { key: BgStyle; label: string }[] = [
+  { key: "aurora", label: "Aurora" },
+  { key: "clean",  label: "Clean" },
+  { key: "grain",  label: "Grain" },
+  { key: "grid",   label: "Grid" },
+];
+
+function AppearanceSection() {
+  const a = useStore((s) => s.appearance);
+  return (
+    <section className="rounded-3xl bg-card border border-border overflow-hidden">
+      <div className="px-5 pt-5 pb-3 flex items-center gap-2">
+        <Sparkles className="size-4 text-primary" />
+        <h2 className="text-sm font-semibold">Make it yours</h2>
+        <button
+          onClick={resetAppearance}
+          className="ml-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+        >
+          <RotateCcw className="size-3" /> Reset
+        </button>
+      </div>
+
+      {/* Palette */}
+      <Group icon={<Palette className="size-4" />} label="Color palette">
+        <div className="grid grid-cols-4 gap-2">
+          {PALETTES.map((p) => (
+            <button
+              key={p.key}
+              onClick={() => setAppearance({ palette: p.key })}
+              className={`group relative flex flex-col items-center gap-1.5 rounded-2xl border p-2.5 transition ${
+                a.palette === p.key ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"
+              }`}
+            >
+              <span className="size-7 rounded-full shadow-sm ring-1 ring-black/5" style={{ background: p.swatch }} />
+              <span className="text-[11px] font-medium">{p.label}</span>
+            </button>
+          ))}
+        </div>
+      </Group>
+
+      {/* Font */}
+      <Group icon={<TypeIcon className="size-4" />} label="Typography">
+        <div className="grid grid-cols-4 gap-2">
+          {FONTS.map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setAppearance({ font: f.key })}
+              className={`flex flex-col items-center gap-1 rounded-2xl border p-2.5 transition ${
+                a.font === f.key ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"
+              }`}
+            >
+              <span className="text-lg" style={{ fontFamily: f.family }}>{f.sample}</span>
+              <span className="text-[11px] font-medium">{f.label}</span>
+            </button>
+          ))}
+        </div>
+      </Group>
+
+      {/* Radius */}
+      <Group icon={<Square className="size-4" />} label="Corner style">
+        <div className="grid grid-cols-3 gap-2">
+          {RADII.map((r) => (
+            <button
+              key={r.key}
+              onClick={() => setAppearance({ radius: r.key })}
+              className={`flex flex-col items-center gap-1.5 border p-2.5 transition ${
+                a.radius === r.key ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"
+              }`}
+              style={{ borderRadius: "1rem" }}
+            >
+              <span className="w-10 h-6 bg-primary/70" style={{ borderRadius: r.r }} />
+              <span className="text-[11px] font-medium">{r.label}</span>
+            </button>
+          ))}
+        </div>
+      </Group>
+
+      {/* Density + Background */}
+      <Group label="Density">
+        <div className="grid grid-cols-2 gap-2">
+          {DENSITIES.map((d) => (
+            <button
+              key={d.key}
+              onClick={() => setAppearance({ density: d.key })}
+              className={`rounded-2xl border py-2.5 text-sm font-medium transition ${
+                a.density === d.key ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
+      </Group>
+
+      <Group label="Background">
+        <div className="grid grid-cols-4 gap-2">
+          {BGS.map((b) => (
+            <button
+              key={b.key}
+              onClick={() => setAppearance({ background: b.key })}
+              className={`rounded-2xl border py-2.5 text-xs font-medium transition ${
+                a.background === b.key ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {b.label}
+            </button>
+          ))}
+        </div>
+      </Group>
+    </section>
+  );
+}
+
+function Group({ icon, label, children }: { icon?: React.ReactNode; label: string; children: React.ReactNode }) {
+  return (
+    <div className="px-5 py-4 border-t border-border">
+      <div className="flex items-center gap-2 mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {icon}{label}
+      </div>
+      {children}
+    </div>
+  );
+}
+
