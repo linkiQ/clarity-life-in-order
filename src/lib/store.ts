@@ -168,6 +168,16 @@ export function applyTheme(theme: "dark" | "light") {
   }
 }
 
+export function applyAppearance(a: Appearance) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  root.dataset.palette = a.palette;
+  root.dataset.font = a.font;
+  root.dataset.radius = a.radius;
+  root.dataset.density = a.density;
+  root.dataset.bg = a.background;
+}
+
 function hydrate() {
   if (hydrated) return;
   hydrated = true;
@@ -175,6 +185,7 @@ function hydrate() {
   state = { ...state, items: rollRecurring(state.items) };
   persist();
   applyTheme(state.theme);
+  applyAppearance(state.appearance);
   emit();
 }
 
