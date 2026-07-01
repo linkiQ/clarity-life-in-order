@@ -225,6 +225,19 @@ export function toggleFocusMode() {
 export function setCurrency(currency: string) {
   setState((s) => ({ ...s, currency }));
 }
+export function setAppearance(patch: Partial<Appearance>) {
+  setState((s) => {
+    const next = { ...s.appearance, ...patch };
+    applyAppearance(next);
+    return { ...s, appearance: next };
+  });
+}
+export function resetAppearance() {
+  setState((s) => {
+    applyAppearance(defaultAppearance);
+    return { ...s, appearance: defaultAppearance };
+  });
+}
 
 // ---- helpers ----
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
