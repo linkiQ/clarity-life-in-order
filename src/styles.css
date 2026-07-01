@@ -82,7 +82,81 @@
   --tint-sky: oklch(0.93 0.05 230);
   --tint-lilac: oklch(0.93 0.05 300);
   --tint-sand: oklch(0.94 0.025 80);
+
+  --bg-a: oklch(0.95 0.06 320 / 0.6);
+  --bg-b: oklch(0.94 0.06 200 / 0.55);
 }
+
+/* -- Palettes (primary hue + backdrop) -- */
+:root[data-palette="mint"] {
+  --primary: oklch(0.72 0.13 165);
+  --ring: oklch(0.72 0.13 165);
+  --background: oklch(0.985 0.014 165);
+  --bg-a: oklch(0.94 0.07 165 / 0.6);
+  --bg-b: oklch(0.94 0.06 200 / 0.55);
+}
+:root[data-palette="peach"] {
+  --primary: oklch(0.74 0.13 45);
+  --ring: oklch(0.74 0.13 45);
+  --background: oklch(0.985 0.014 60);
+  --bg-a: oklch(0.94 0.07 45 / 0.6);
+  --bg-b: oklch(0.94 0.06 15 / 0.5);
+}
+:root[data-palette="sky"] {
+  --primary: oklch(0.72 0.13 230);
+  --ring: oklch(0.72 0.13 230);
+  --background: oklch(0.985 0.014 230);
+  --bg-a: oklch(0.94 0.07 230 / 0.6);
+  --bg-b: oklch(0.94 0.06 260 / 0.5);
+}
+:root[data-palette="sand"] {
+  --primary: oklch(0.66 0.09 70);
+  --ring: oklch(0.66 0.09 70);
+  --background: oklch(0.98 0.014 80);
+  --bg-a: oklch(0.94 0.05 70 / 0.55);
+  --bg-b: oklch(0.94 0.04 40 / 0.45);
+}
+:root[data-palette="rose"] {
+  --primary: oklch(0.72 0.15 10);
+  --ring: oklch(0.72 0.15 10);
+  --background: oklch(0.985 0.014 15);
+  --bg-a: oklch(0.94 0.08 15 / 0.6);
+  --bg-b: oklch(0.94 0.06 340 / 0.5);
+}
+:root[data-palette="mono"] {
+  --primary: oklch(0.35 0.02 285);
+  --ring: oklch(0.35 0.02 285);
+  --background: oklch(0.985 0.003 285);
+  --bg-a: oklch(0.93 0.005 285 / 0.6);
+  --bg-b: oklch(0.9 0.005 285 / 0.5);
+}
+
+/* -- Font families -- */
+:root[data-font="modern"] {
+  --font-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, sans-serif;
+}
+:root[data-font="rounded"] {
+  --font-display: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, sans-serif;
+  --font-sans: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, sans-serif;
+}
+:root[data-font="serif"] {
+  --font-display: "Iowan Old Style", "Palatino", "Georgia", ui-serif, serif;
+  --font-sans: "Iowan Old Style", "Palatino", "Georgia", ui-serif, serif;
+}
+:root[data-font="mono"] {
+  --font-display: ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", monospace;
+  --font-sans: ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", monospace;
+}
+
+/* -- Radius -- */
+:root[data-radius="soft"] { --radius: 1rem; }
+:root[data-radius="medium"] { --radius: 0.625rem; }
+:root[data-radius="sharp"] { --radius: 0.25rem; }
+
+/* -- Density -- */
+:root[data-density="compact"] { font-size: 15px; }
+
 
 /* Optional dark mode (still soft, not harsh) */
 .dark {
