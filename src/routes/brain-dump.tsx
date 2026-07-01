@@ -15,7 +15,8 @@ export const Route = createFileRoute("/brain-dump")({
 });
 
 function BrainDumpPage() {
-  const ideas = useStore((s) => s.items.filter((i) => (i.type === "idea" || i.type === "note") && !i.completedAt));
+  const items = useStore((s) => s.items);
+  const ideas = items.filter((i) => (i.type === "idea" || i.type === "note") && !i.completedAt);
   return (
     <AppShell>
       <h1 className="font-display text-3xl font-bold tracking-tight mb-1">Brain dump</h1>

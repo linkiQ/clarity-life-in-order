@@ -69,6 +69,20 @@ export interface Item {
   tags: string[];
 }
 
+export type Palette = "lilac" | "mint" | "peach" | "sky" | "sand" | "rose" | "mono";
+export type FontStyle = "modern" | "rounded" | "serif" | "mono";
+export type RadiusStyle = "soft" | "medium" | "sharp";
+export type Density = "cozy" | "compact";
+export type BgStyle = "aurora" | "clean" | "grain" | "grid";
+
+export interface Appearance {
+  palette: Palette;
+  font: FontStyle;
+  radius: RadiusStyle;
+  density: Density;
+  background: BgStyle;
+}
+
 export interface AppState {
   items: Item[];
   theme: "dark" | "light";
@@ -78,9 +92,18 @@ export interface AppState {
   userId: string | null;
   cloudSyncing: boolean;
   migrationPending: boolean; // true when signed in with local items but cloud empty
+  appearance: Appearance;
 }
 
 const STORAGE_KEY = "clarity:v2";
+
+const defaultAppearance: Appearance = {
+  palette: "lilac",
+  font: "modern",
+  radius: "soft",
+  density: "cozy",
+  background: "aurora",
+};
 
 const defaultState: AppState = {
   items: [],
@@ -91,6 +114,7 @@ const defaultState: AppState = {
   userId: null,
   cloudSyncing: false,
   migrationPending: false,
+  appearance: defaultAppearance,
 };
 
 function load(): AppState {
@@ -98,7 +122,12 @@ function load(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState;
-    return { ...defaultState, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    return {
+      ...defaultState,
+      ...parsed,
+      appearance: { ...defaultAppearance, ...(parsed.appearance ?? {}) },
+    };
   } catch {
     return defaultState;
   }
@@ -139,6 +168,16 @@ export function applyTheme(theme: "dark" | "light") {
   }
 }
 
+export function applyAppearance(a: Appearance) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  root.dataset.palette = a.palette;
+  root.dataset.font = a.font;
+  root.dataset.radius = a.radius;
+  root.dataset.density = a.density;
+  root.dataset.bg = a.background;
+}
+
 function hydrate() {
   if (hydrated) return;
   hydrated = true;
@@ -146,6 +185,7 @@ function hydrate() {
   state = { ...state, items: rollRecurring(state.items) };
   persist();
   applyTheme(state.theme);
+  applyAppearance(state.appearance);
   emit();
 }
 
@@ -184,6 +224,19 @@ export function toggleFocusMode() {
 }
 export function setCurrency(currency: string) {
   setState((s) => ({ ...s, currency }));
+}
+export function setAppearance(patch: Partial<Appearance>) {
+  setState((s) => {
+    const next = { ...s.appearance, ...patch };
+    applyAppearance(next);
+    return { ...s, appearance: next };
+  });
+}
+export function resetAppearance() {
+  setState((s) => {
+    applyAppearance(defaultAppearance);
+    return { ...s, appearance: defaultAppearance };
+  });
 }
 
 // ---- helpers ----
