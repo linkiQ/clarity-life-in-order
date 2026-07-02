@@ -22,9 +22,10 @@ export function BottomNav() {
               <Link
                 key={to}
                 to={to}
-                className={`flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-xl transition-colors ${
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 min-h-11 py-2 rounded-xl transition-colors ${
                   active ? "text-primary" : "text-muted-foreground"
                 }`}
+                aria-label={label}
               >
                 <Icon className="size-5" />
                 <span className="text-[10px] font-medium">{label}</span>
