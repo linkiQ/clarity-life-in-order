@@ -319,9 +319,12 @@ export function AddSheet({ open, onClose, initialTitle = "", initialType = "task
           </Field>
         </div>
 
-        <div className="sticky bottom-0 bg-card/95 backdrop-blur border-t border-border p-4 flex gap-2 rounded-b-3xl">
-          <button onClick={onClose} className="flex-1 rounded-xl bg-secondary text-secondary-foreground py-2.5 font-medium">Cancel</button>
-          <button onClick={submit} disabled={!title.trim()} className="flex-[2] rounded-xl bg-primary text-primary-foreground py-2.5 font-semibold disabled:opacity-50">
+        <div
+          className="sticky bottom-0 z-10 bg-card/95 backdrop-blur border-t border-border p-4 flex gap-2 rounded-b-3xl"
+          style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+        >
+          <button onClick={onClose} className="flex-1 min-h-11 rounded-xl bg-secondary text-secondary-foreground py-3 font-medium">Cancel</button>
+          <button onClick={submit} disabled={!title.trim()} className="flex-[2] min-h-11 rounded-xl bg-primary text-primary-foreground py-3 font-semibold disabled:opacity-50">
             Add {meta.label.toLowerCase()}
           </button>
         </div>
