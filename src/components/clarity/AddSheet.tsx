@@ -72,7 +72,8 @@ export function AddSheet({ open, onClose, initialTitle = "", initialType = "task
   const meta = TYPE_META[type];
 
   function submit() {
-    if (!title.trim()) return;
+    const clean = title.trim().slice(0, 500);
+    if (!clean) return;
     const details: Record<string, unknown> = {};
     switch (type) {
       case "financial":
