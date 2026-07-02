@@ -166,9 +166,11 @@ export function AddSheet({ open, onClose, initialTitle = "", initialType = "task
             <input
               autoFocus
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => setTitle(e.target.value.slice(0, 500))}
+              maxLength={500}
+              enterKeyHint="done"
               placeholder={titlePlaceholder(type)}
-              className="mt-1.5 w-full rounded-xl bg-surface border border-border px-3 py-2.5 text-base outline-none focus:border-primary"
+              className="mt-1.5 w-full rounded-xl bg-surface border border-border px-3 py-3 text-base outline-none focus:border-primary min-h-11"
             />
           </div>
 
