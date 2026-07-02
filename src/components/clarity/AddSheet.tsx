@@ -120,13 +120,14 @@ export function AddSheet({ open, onClose, initialTitle = "", initialType = "task
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-foreground/30 backdrop-blur-sm p-3" onClick={onClose}>
       <div
-        className="animate-sheet-up w-full max-w-lg rounded-3xl bg-card shadow-2xl border border-border max-h-[88vh] overflow-y-auto"
+        className="animate-sheet-up w-full max-w-lg rounded-3xl bg-card shadow-2xl border border-border overflow-y-auto flex flex-col"
+        style={{ maxHeight: "min(88dvh, 88vh)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-card/95 backdrop-blur border-b border-border px-5 py-3 flex items-center justify-between rounded-t-3xl">
+        <div className="sticky top-0 z-10 bg-card/95 backdrop-blur border-b border-border px-5 py-3 flex items-center justify-between rounded-t-3xl">
           <h2 className="font-display font-semibold text-lg">New {meta.label.toLowerCase()}</h2>
-          <button onClick={onClose} className="size-8 rounded-full hover:bg-muted flex items-center justify-center" aria-label="Close">
-            <X className="size-4" />
+          <button onClick={onClose} className="size-11 -mr-2 rounded-full hover:bg-muted flex items-center justify-center" aria-label="Close">
+            <X className="size-5" />
           </button>
         </div>
 
