@@ -72,7 +72,8 @@ export function AddSheet({ open, onClose, initialTitle = "", initialType = "task
   const meta = TYPE_META[type];
 
   function submit() {
-    if (!title.trim()) return;
+    const clean = title.trim().slice(0, 500);
+    if (!clean) return;
     const details: Record<string, unknown> = {};
     switch (type) {
       case "financial":
@@ -108,9 +109,9 @@ export function AddSheet({ open, onClose, initialTitle = "", initialType = "task
         break;
     }
     const input: NewItemInput = {
-      title, type, priority,
+      title: clean, type, priority,
       scheduledFor: scheduledFor ?? (type === "idea" ? null : scheduledFor),
-      dueAt, recurrence, notes: notes || undefined, details,
+      dueAt, recurrence, notes: notes ? notes.slice(0, 2000) : undefined, details,
     };
     addItem(input);
     onClose();
@@ -119,13 +120,14 @@ export function AddSheet({ open, onClose, initialTitle = "", initialType = "task
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-foreground/30 backdrop-blur-sm p-3" onClick={onClose}>
       <div
-        className="animate-sheet-up w-full max-w-lg rounded-3xl bg-card shadow-2xl border border-border max-h-[88vh] overflow-y-auto"
+        className="animate-sheet-up w-full max-w-lg rounded-3xl bg-card shadow-2xl border border-border overflow-y-auto flex flex-col"
+        style={{ maxHeight: "min(88dvh, 88vh)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-card/95 backdrop-blur border-b border-border px-5 py-3 flex items-center justify-between rounded-t-3xl">
+        <div className="sticky top-0 z-10 bg-card/95 backdrop-blur border-b border-border px-5 py-3 flex items-center justify-between rounded-t-3xl">
           <h2 className="font-display font-semibold text-lg">New {meta.label.toLowerCase()}</h2>
-          <button onClick={onClose} className="size-8 rounded-full hover:bg-muted flex items-center justify-center" aria-label="Close">
-            <X className="size-4" />
+          <button onClick={onClose} className="size-11 -mr-2 rounded-full hover:bg-muted flex items-center justify-center" aria-label="Close">
+            <X className="size-5" />
           </button>
         </div>
 
@@ -165,9 +167,11 @@ export function AddSheet({ open, onClose, initialTitle = "", initialType = "task
             <input
               autoFocus
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => setTitle(e.target.value.slice(0, 500))}
+              maxLength={500}
+              enterKeyHint="done"
               placeholder={titlePlaceholder(type)}
-              className="mt-1.5 w-full rounded-xl bg-surface border border-border px-3 py-2.5 text-base outline-none focus:border-primary"
+              className="mt-1.5 w-full rounded-xl bg-surface border border-border px-3 py-3 text-base outline-none focus:border-primary min-h-11"
             />
           </div>
 
@@ -315,9 +319,12 @@ export function AddSheet({ open, onClose, initialTitle = "", initialType = "task
           </Field>
         </div>
 
-        <div className="sticky bottom-0 bg-card/95 backdrop-blur border-t border-border p-4 flex gap-2 rounded-b-3xl">
-          <button onClick={onClose} className="flex-1 rounded-xl bg-secondary text-secondary-foreground py-2.5 font-medium">Cancel</button>
-          <button onClick={submit} disabled={!title.trim()} className="flex-[2] rounded-xl bg-primary text-primary-foreground py-2.5 font-semibold disabled:opacity-50">
+        <div
+          className="sticky bottom-0 z-10 bg-card/95 backdrop-blur border-t border-border p-4 flex gap-2 rounded-b-3xl"
+          style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+        >
+          <button onClick={onClose} className="flex-1 min-h-11 rounded-xl bg-secondary text-secondary-foreground py-3 font-medium">Cancel</button>
+          <button onClick={submit} disabled={!title.trim()} className="flex-[2] min-h-11 rounded-xl bg-primary text-primary-foreground py-3 font-semibold disabled:opacity-50">
             Add {meta.label.toLowerCase()}
           </button>
         </div>

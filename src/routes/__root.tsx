@@ -80,28 +80,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "viewport",
         content:
-          "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1",
+          "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, interactive-widget=resizes-content",
       },
-      { name: "theme-color", content: "#1a1726" },
+      { name: "theme-color", content: "#c6b3e8" },
       { title: "Clarity — Daily Life Organizer" },
       {
         name: "description",
         content:
           "Clarity is a fast, beautiful daily organizer. Capture, prioritize, and clear your day.",
       },
+      { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "Clarity" },
+      { name: "format-detection", content: "telephone=no" },
       { property: "og:title", content: "Clarity — Daily Life Organizer" },
-      {
-        property: "og:description",
-        content: "Capture, prioritize, and clear your day with Clarity.",
-      },
       { property: "og:type", content: "website" },
+      { property: "og:description", content: "Clarity: Your Daily Compass helps you organize, prioritize, and manage your day." },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Clarity — Daily Life Organizer" },
-      { name: "description", content: "Clarity: Your Daily Compass helps you organize, prioritize, and manage your day." },
-      { property: "og:description", content: "Clarity: Your Daily Compass helps you organize, prioritize, and manage your day." },
       { name: "twitter:description", content: "Clarity: Your Daily Compass helps you organize, prioritize, and manage your day." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ccb68855-2128-48be-8ab6-52db611d3505/id-preview-70601112--ddfd3b34-0717-4931-bdb9-c8abf146df30.lovable.app-1782775330096.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ccb68855-2128-48be-8ab6-52db611d3505/id-preview-70601112--ddfd3b34-0717-4931-bdb9-c8abf146df30.lovable.app-1782775330096.png" },
@@ -109,6 +106,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icons/icon-192.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
