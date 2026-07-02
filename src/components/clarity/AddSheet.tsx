@@ -109,9 +109,9 @@ export function AddSheet({ open, onClose, initialTitle = "", initialType = "task
         break;
     }
     const input: NewItemInput = {
-      title, type, priority,
+      title: clean, type, priority,
       scheduledFor: scheduledFor ?? (type === "idea" ? null : scheduledFor),
-      dueAt, recurrence, notes: notes || undefined, details,
+      dueAt, recurrence, notes: notes ? notes.slice(0, 2000) : undefined, details,
     };
     addItem(input);
     onClose();
