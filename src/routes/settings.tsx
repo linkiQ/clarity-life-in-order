@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Moon, Sun, Flame, Trash2, Wallet, ListChecks, LogIn, LogOut, Cloud, UserCircle2, Palette, Type as TypeIcon, Square, Sparkles, RotateCcw } from "lucide-react";
+import { Moon, Sun, Flame, Trash2, Wallet, ListChecks, LogIn, LogOut, Cloud, UserCircle2, Palette, Type as TypeIcon, Square, Sparkles, RotateCcw, ChevronDown, Zap, LayoutGrid, AlertCircle, CheckCircle2 } from "lucide-react";
 import { AppShell } from "@/components/clarity/AppShell";
-import { setCurrency, toggleTheme, useStore, clearLocalOnly, setAppearance, resetAppearance, type Palette as PaletteKey, type FontStyle, type RadiusStyle, type Density, type BgStyle } from "@/lib/store";
+import { setCurrency, toggleTheme, useStore, clearLocalOnly, setAppearance, resetAppearance, type Palette as PaletteKey, type FontStyle, type RadiusStyle, type Density, type BgStyle, type ItemType, type TodayStat } from "@/lib/store";
+import { TYPE_META, TYPE_ORDER } from "@/components/clarity/itemMeta";
 import { useAuth, signOut } from "@/lib/auth";
 
 export const Route = createFileRoute("/settings")({
@@ -166,6 +168,9 @@ const BGS: { key: BgStyle; label: string }[] = [
 
 function AppearanceSection() {
   const a = useStore((s) => s.appearance);
+  const theme = useStore((s) => s.theme);
+  const isDark = theme === "dark";
+  const [advanced, setAdvanced] = useState(false);
   return (
     <section className="rounded-3xl bg-card border border-border overflow-hidden">
       <div className="px-5 pt-5 pb-3 flex items-center gap-2">
