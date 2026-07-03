@@ -202,73 +202,191 @@ function AppearanceSection() {
         </div>
       </Group>
 
-      {/* Font */}
-      <Group icon={<TypeIcon className="size-4" />} label="Typography">
-        <div className="grid grid-cols-4 gap-2">
-          {FONTS.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setAppearance({ font: f.key })}
-              className={`flex flex-col items-center gap-1 rounded-2xl border p-2.5 transition ${
-                a.font === f.key ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"
-              }`}
-            >
-              <span className="text-lg" style={{ fontFamily: f.family }}>{f.sample}</span>
-              <span className="text-[11px] font-medium">{f.label}</span>
-            </button>
-          ))}
-        </div>
-      </Group>
-
-      {/* Radius */}
-      <Group icon={<Square className="size-4" />} label="Corner style">
-        <div className="grid grid-cols-3 gap-2">
-          {RADII.map((r) => (
-            <button
-              key={r.key}
-              onClick={() => setAppearance({ radius: r.key })}
-              className={`flex flex-col items-center gap-1.5 border p-2.5 transition ${
-                a.radius === r.key ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"
-              }`}
-              style={{ borderRadius: "1rem" }}
-            >
-              <span className="w-10 h-6 bg-primary/70" style={{ borderRadius: r.r }} />
-              <span className="text-[11px] font-medium">{r.label}</span>
-            </button>
-          ))}
-        </div>
-      </Group>
-
-      {/* Density + Background */}
-      <Group label="Density">
+      {/* Always-visible: Theme toggle for quick light/dark */}
+      <Group label="Mode">
         <div className="grid grid-cols-2 gap-2">
-          {DENSITIES.map((d) => (
-            <button
-              key={d.key}
-              onClick={() => setAppearance({ density: d.key })}
-              className={`rounded-2xl border py-2.5 text-sm font-medium transition ${
-                a.density === d.key ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {d.label}
-            </button>
-          ))}
+          <button
+            onClick={() => { if (isDark) toggleTheme(); }}
+            className={`rounded-2xl border py-2.5 text-sm font-medium inline-flex items-center justify-center gap-2 transition ${
+              !isDark ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground"
+            }`}
+          >
+            <Sun className="size-4" /> Light
+          </button>
+          <button
+            onClick={() => { if (!isDark) toggleTheme(); }}
+            className={`rounded-2xl border py-2.5 text-sm font-medium inline-flex items-center justify-center gap-2 transition ${
+              isDark ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground"
+            }`}
+          >
+            <Moon className="size-4" /> Dark
+          </button>
         </div>
       </Group>
 
-      <Group label="Background">
-        <div className="grid grid-cols-4 gap-2">
-          {BGS.map((b) => (
-            <button
-              key={b.key}
-              onClick={() => setAppearance({ background: b.key })}
-              className={`rounded-2xl border py-2.5 text-xs font-medium transition ${
-                a.background === b.key ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {b.label}
-            </button>
-          ))}
+      {/* Advanced disclosure */}
+      <div className="px-5 py-3 border-t border-border">
+        <button
+          onClick={() => setAdvanced((v) => !v)}
+          aria-expanded={advanced}
+          className="w-full inline-flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground min-h-11"
+        >
+          <span>Advanced customization</span>
+          <ChevronDown className={`size-4 transition-transform ${advanced ? "rotate-180" : ""}`} />
+        </button>
+      </div>
+
+      {advanced && (
+        <>
+          {/* Font */}
+          <Group icon={<TypeIcon className="size-4" />} label="Typography">
+            <div className="grid grid-cols-4 gap-2">
+              {FONTS.map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => setAppearance({ font: f.key })}
+                  className={`flex flex-col items-center gap-1 rounded-2xl border p-2.5 transition ${
+                    a.font === f.key ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"
+                  }`}
+                >
+                  <span className="text-lg" style={{ fontFamily: f.family }}>{f.sample}</span>
+                  <span className="text-[11px] font-medium">{f.label}</span>
+                </button>
+              ))}
+            </div>
+          </Group>
+
+          {/* Radius */}
+          <Group icon={<Square className="size-4" />} label="Corner style">
+            <div className="grid grid-cols-3 gap-2">
+              {RADII.map((r) => (
+                <button
+                  key={r.key}
+                  onClick={() => setAppearance({ radius: r.key })}
+                  className={`flex flex-col items-center gap-1.5 border p-2.5 transition ${
+                    a.radius === r.key ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"
+                  }`}
+                  style={{ borderRadius: "1rem" }}
+                >
+                  <span className="w-10 h-6 bg-primary/70" style={{ borderRadius: r.r }} />
+                  <span className="text-[11px] font-medium">{r.label}</span>
+                </button>
+              ))}
+            </div>
+          </Group>
+
+          <Group label="Density">
+            <div className="grid grid-cols-2 gap-2">
+              {DENSITIES.map((d) => (
+                <button
+                  key={d.key}
+                  onClick={() => setAppearance({ density: d.key })}
+                  className={`rounded-2xl border py-2.5 text-sm font-medium transition ${
+                    a.density === d.key ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </Group>
+
+          <Group label="Background">
+            <div className="grid grid-cols-4 gap-2">
+              {BGS.map((b) => (
+                <button
+                  key={b.key}
+                  onClick={() => setAppearance({ background: b.key })}
+                  className={`rounded-2xl border py-2.5 text-xs font-medium transition ${
+                    a.background === b.key ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {b.label}
+                </button>
+              ))}
+            </div>
+          </Group>
+        </>
+      )}
+    </section>
+  );
+}
+
+const TODAY_STATS: { key: TodayStat; label: string; icon: typeof Flame }[] = [
+  { key: "streak", label: "Streak", icon: Flame },
+  { key: "urgent", label: "Urgent", icon: AlertCircle },
+  { key: "total",  label: "Remaining", icon: ListChecks },
+  { key: "done",   label: "Completed", icon: CheckCircle2 },
+];
+
+function QuickActionsSection() {
+  const a = useStore((s) => s.appearance);
+  const selected = a.todayStats ?? [];
+
+  function toggleStat(k: TodayStat) {
+    const has = selected.includes(k);
+    let next: TodayStat[];
+    if (has) next = selected.filter((s) => s !== k);
+    else if (selected.length >= 2) next = [selected[1], k]; // keep max 2, drop oldest
+    else next = [...selected, k];
+    setAppearance({ todayStats: next });
+  }
+
+  return (
+    <section className="rounded-3xl bg-card border border-border overflow-hidden mt-6">
+      <div className="px-5 pt-5 pb-3 flex items-center gap-2">
+        <Zap className="size-4 text-primary" />
+        <h2 className="text-sm font-semibold">Quick actions</h2>
+      </div>
+
+      <Group icon={<LayoutGrid className="size-4" />} label="Long-press “+” default">
+        <p className="text-xs text-muted-foreground mb-3 -mt-2">
+          Tap the floating “+” to open this type instantly. Long-press or swipe up for the full menu.
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          {TYPE_ORDER.map((k) => {
+            const m = TYPE_META[k];
+            const Icon = m.icon;
+            const active = a.quickAddType === k;
+            return (
+              <button
+                key={k}
+                onClick={() => setAppearance({ quickAddType: k as ItemType })}
+                className={`flex flex-col items-center gap-1 rounded-2xl border py-3 transition ${
+                  active ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"
+                }`}
+              >
+                <span className={`size-8 rounded-full grid place-items-center ${m.tint}`}>
+                  <Icon className={`size-4 ${m.text}`} />
+                </span>
+                <span className="text-[11px] font-medium">{m.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </Group>
+
+      <Group label={`Today header stats · ${selected.length}/2`}>
+        <p className="text-xs text-muted-foreground mb-3 -mt-2">
+          Pick up to two glanceable stats to show at the top of Today.
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {TODAY_STATS.map((s) => {
+            const Icon = s.icon;
+            const active = selected.includes(s.key);
+            return (
+              <button
+                key={s.key}
+                onClick={() => toggleStat(s.key)}
+                className={`inline-flex items-center gap-2 rounded-2xl border py-2.5 px-3 text-sm font-medium transition ${
+                  active ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Icon className="size-4" />
+                {s.label}
+              </button>
+            );
+          })}
         </div>
       </Group>
     </section>
