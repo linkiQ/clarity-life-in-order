@@ -17,13 +17,12 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
-  const theme = useStore((s) => s.theme);
   const streak = useStore((s) => s.streak);
   const total = useStore((s) => s.items.length);
   const currency = useStore((s) => s.currency);
   const userId = useStore((s) => s.userId);
   const { user } = useAuth();
-  const isDark = theme === "dark";
+
 
   function reset() {
     if (typeof window === "undefined") return;
