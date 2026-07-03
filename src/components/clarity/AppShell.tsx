@@ -3,7 +3,7 @@ import { Plus, CheckSquare, Receipt, ShoppingBag, Bell, Lightbulb } from "lucide
 import { BottomNav } from "./BottomNav";
 import { AddSheet } from "./AddSheet";
 import { AuthSync } from "./AuthSync";
-import type { ItemType } from "@/lib/store";
+import { useStore, type ItemType } from "@/lib/store";
 
 interface QuickType {
   key: ItemType;
@@ -23,8 +23,9 @@ const QUICK_TYPES: QuickType[] = [
 const LONG_PRESS_MS = 380;
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const quickAddType = useStore((s) => s.appearance.quickAddType);
   const [open, setOpen] = useState(false);
-  const [initialType, setInitialType] = useState<ItemType>("task");
+  const [initialType, setInitialType] = useState<ItemType>(quickAddType);
   const [menuOpen, setMenuOpen] = useState(false);
   const timerRef = useRef<number | null>(null);
   const startYRef = useRef<number | null>(null);
@@ -85,8 +86,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       e.stopPropagation();
       return;
     }
-    // Short tap → open sheet with default task type.
-    setInitialType("task");
+    // Short tap → open sheet with user's default quick type.
+    setInitialType(quickAddType);
     setOpen(true);
   }
 

@@ -1,5 +1,6 @@
 import { sortItems, type Item } from "@/lib/store";
 import { ItemCard } from "./ItemCard";
+import { SwipeRow } from "./SwipeRow";
 
 export function ItemList({ items, empty, presorted }: { items: Item[]; empty?: string; presorted?: boolean }) {
   if (items.length === 0) {
@@ -8,7 +9,11 @@ export function ItemList({ items, empty, presorted }: { items: Item[]; empty?: s
   const list = presorted ? items : sortItems(items);
   return (
     <div className="flex flex-col gap-2">
-      {list.map((i) => <ItemCard key={i.id} item={i} />)}
+      {list.map((i) => (
+        <SwipeRow key={i.id} item={i}>
+          <ItemCard item={i} />
+        </SwipeRow>
+      ))}
     </div>
   );
 }

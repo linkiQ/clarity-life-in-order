@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Flame, Focus, Sparkles, CircleCheck, UserCircle2 } from "lucide-react";
+import { Flame, Focus, Sparkles, CircleCheck, UserCircle2, AlertCircle, ListChecks, CheckCircle2 } from "lucide-react";
 import { AppShell } from "@/components/clarity/AppShell";
 import { Capture } from "@/components/clarity/Capture";
 import { ItemList } from "@/components/clarity/ItemList";
-import { isTodayItem, sortItems, toggleFocusMode, useHydrated, useStore } from "@/lib/store";
+import { isTodayItem, sortItems, toggleFocusMode, useHydrated, useStore, type TodayStat } from "@/lib/store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -20,6 +20,7 @@ function TodayPage() {
   const focusMode = useStore((s) => s.focusMode);
   const streak = useStore((s) => s.streak.count);
   const userId = useStore((s) => s.userId);
+  const statPrefs = useStore((s) => s.appearance.todayStats);
   const mounted = useHydrated();
 
   const today = items.filter(isTodayItem);
@@ -31,6 +32,14 @@ function TodayPage() {
     : sortItems(active);
 
   const allDone = today.length > 0 && active.length === 0;
+
+  const statMap: Record<TodayStat, { value: number; icon: typeof Flame; tint: string; label: string; hide?: boolean }> = {
+    streak:  { value: streak,          icon: Flame,        tint: "bg-tint-peach text-orange-700", label: "day streak", hide: streak === 0 },
+    urgent:  { value: urgent,          icon: AlertCircle,  tint: "bg-priority-high/15 text-priority-high", label: "urgent", hide: urgent === 0 },
+    total:   { value: active.length,   icon: ListChecks,   tint: "bg-tint-sky text-sky-700", label: "left" },
+    done:    { value: completed.length,icon: CheckCircle2, tint: "bg-tint-mint text-emerald-700", label: "done", hide: completed.length === 0 },
+  };
+  const stats = (statPrefs ?? []).slice(0, 2).map((k) => ({ key: k, ...statMap[k] })).filter((s) => !s.hide);
 
   return (
     <AppShell>
@@ -48,13 +57,16 @@ function TodayPage() {
               <span className="text-primary">.</span>
             </h1>
           </div>
-          <div className="flex items-center gap-2 shrink-0 pt-1">
-            {streak > 0 && (
-              <div className="flex items-center gap-1.5 rounded-full bg-tint-peach text-orange-700 px-3 py-1.5 text-sm font-semibold">
-                <Flame className="size-4" />
-                {streak}
-              </div>
-            )}
+          <div className="flex items-center gap-2 shrink-0 pt-1 flex-wrap justify-end max-w-[55%]">
+            {stats.map((s) => {
+              const Icon = s.icon;
+              return (
+                <div key={s.key} className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold ${s.tint}`}>
+                  <Icon className="size-4" />
+                  {s.value}
+                </div>
+              );
+            })}
             {!userId && (
               <Link
                 to="/auth"

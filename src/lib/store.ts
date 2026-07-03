@@ -75,12 +75,16 @@ export type RadiusStyle = "soft" | "medium" | "sharp";
 export type Density = "cozy" | "compact";
 export type BgStyle = "aurora" | "clean" | "grain" | "grid";
 
+export type TodayStat = "streak" | "urgent" | "total" | "done";
+
 export interface Appearance {
   palette: Palette;
   font: FontStyle;
   radius: RadiusStyle;
   density: Density;
   background: BgStyle;
+  quickAddType: ItemType;
+  todayStats: TodayStat[]; // up to 2
 }
 
 export interface AppState {
@@ -103,6 +107,8 @@ const defaultAppearance: Appearance = {
   radius: "soft",
   density: "cozy",
   background: "aurora",
+  quickAddType: "task",
+  todayStats: ["streak", "urgent"],
 };
 
 const defaultState: AppState = {
