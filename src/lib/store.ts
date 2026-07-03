@@ -107,6 +107,8 @@ const defaultAppearance: Appearance = {
   radius: "soft",
   density: "cozy",
   background: "aurora",
+  quickAddType: "task",
+  todayStats: ["streak", "urgent"],
 };
 
 const defaultState: AppState = {
