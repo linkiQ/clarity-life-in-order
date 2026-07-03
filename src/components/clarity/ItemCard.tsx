@@ -27,6 +27,12 @@ function formatWhen(ts: number, withTime = true) {
   return withTime ? `${date} · ${time}` : date;
 }
 
+function shortWhen(item: Item): string | null {
+  const ts = item.dueAt ?? item.scheduledFor;
+  if (!ts) return null;
+  return formatWhen(ts, !!item.dueAt);
+}
+
 export function ItemCard({ item }: { item: Item }) {
   const [expanded, setExpanded] = useState(false);
   const meta = TYPE_META[item.type];
@@ -34,6 +40,7 @@ export function ItemCard({ item }: { item: Item }) {
   const done = !!item.completedAt;
   const overdue = isOverdue(item);
   const completable = item.type !== "note" && item.type !== "idea";
+  const when = shortWhen(item);
 
   return (
     <div
@@ -67,23 +74,38 @@ export function ItemCard({ item }: { item: Item }) {
         )}
 
         <div className="flex-1 min-w-0">
-          <button onClick={() => setExpanded((v) => !v)} className="block w-full text-left">
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            className="block w-full text-left"
+          >
             <div className="flex items-start gap-2">
               <div className={`text-[15px] leading-snug flex-1 min-w-0 ${
                 done ? "line-through text-muted-foreground" : "text-foreground"
               }`}>
                 {item.title}
               </div>
-              <span className={`shrink-0 inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider rounded-full px-2 py-0.5 ${meta.tint} ${meta.text}`}>
-                <Icon className="size-3" />
-                {meta.label}
-              </span>
+              {when && (
+                <span className={`shrink-0 inline-flex items-center gap-1 text-[11px] font-medium rounded-full px-2 py-0.5 ${
+                  overdue ? "bg-priority-high/10 text-priority-high" : "bg-secondary text-muted-foreground"
+                }`}>
+                  <Clock className="size-3" /> {when}
+                </span>
+              )}
             </div>
-
-            <DetailLine item={item} overdue={overdue} />
           </button>
 
-          {expanded && <Expanded item={item} />}
+          {/* Smooth expand */}
+          <div
+            className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${
+              expanded ? "grid-rows-[1fr] opacity-100 mt-2" : "grid-rows-[0fr] opacity-0"
+            }`}
+          >
+            <div className="overflow-hidden min-h-0">
+              <DetailLine item={item} overdue={overdue} />
+              <Expanded item={item} />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -92,19 +114,14 @@ export function ItemCard({ item }: { item: Item }) {
 
 function DetailLine({ item, overdue }: { item: Item; overdue: boolean }) {
   const bits: React.ReactNode[] = [];
-  if (item.dueAt) {
-    bits.push(
-      <span key="due" className={`inline-flex items-center gap-1 ${overdue ? "text-priority-high" : ""}`}>
-        <Clock className="size-3" /> {formatWhen(item.dueAt)}
-      </span>
-    );
-  } else if (item.scheduledFor) {
-    bits.push(
-      <span key="sched" className={`inline-flex items-center gap-1 ${overdue ? "text-priority-high" : ""}`}>
-        <CalIcon className="size-3" /> {formatWhen(item.scheduledFor, false)}
-      </span>
-    );
-  }
+  const meta = TYPE_META[item.type];
+  const MetaIcon = meta.icon;
+  bits.push(
+    <span key="type" className={`inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider rounded-full px-2 py-0.5 ${meta.tint} ${meta.text}`}>
+      <MetaIcon className="size-3" />
+      {meta.label}
+    </span>
+  );
   if (item.recurrence !== "none") {
     bits.push(<span key="rec" className="inline-flex items-center gap-1"><Repeat className="size-3" />{item.recurrence}</span>);
   }
@@ -150,12 +167,15 @@ function DetailLine({ item, overdue }: { item: Item; overdue: boolean }) {
   }
   if ((item.type === "note" || item.type === "idea")) {
     const d = item.details as { body?: string };
-    if (d.body) bits.push(<span key="body" className="line-clamp-1">{d.body}</span>);
+    if (d.body) bits.push(<span key="body" className="line-clamp-2">{d.body}</span>);
   }
+  if (item.tags.length > 0) {
+    bits.push(<span key="tags" className="text-primary/80">{item.tags.map((t) => `#${t}`).join(" ")}</span>);
+  }
+  void overdue;
 
-  if (bits.length === 0) return null;
   return (
-    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
       {bits}
     </div>
   );

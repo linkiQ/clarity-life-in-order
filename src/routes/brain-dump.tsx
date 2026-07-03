@@ -24,11 +24,14 @@ function BrainDumpPage() {
         Stash thoughts, ideas, and reminders without committing to a day.
       </p>
 
-      <div className="mb-6">
-        <Capture defaultType="idea" scheduleToday={false} placeholder="Don't lose this thought…" />
-      </div>
+      <ItemList items={ideas} empty="Empty mind. Capture stray thoughts below." />
 
-      <ItemList items={ideas} empty="Empty mind. Capture stray thoughts above." />
+      {/* Thumb-reach capture: fixed above the bottom nav */}
+      <div className="fixed inset-x-0 z-30 bottom-24 sm:bottom-24 safe-bottom pointer-events-none">
+        <div className="mx-auto max-w-xl px-5 sm:px-6 pointer-events-auto">
+          <Capture defaultType="idea" scheduleToday={false} placeholder="Don't lose this thought…" />
+        </div>
+      </div>
     </AppShell>
   );
 }
