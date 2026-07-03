@@ -83,16 +83,12 @@ function SettingsPage() {
       {/* Appearance customization */}
       <AppearanceSection />
 
+      {/* Quick actions */}
+      <QuickActionsSection />
+
       {/* Preferences */}
       <section className="rounded-3xl bg-card border border-border divide-y divide-border overflow-hidden mt-6">
-        <button onClick={toggleTheme} className="flex items-center w-full px-5 py-4 gap-3 text-left hover:bg-secondary/40 transition">
-          {isDark ? <Moon className="size-5 text-primary" /> : <Sun className="size-5 text-primary" />}
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium">Theme</div>
-            <div className="text-xs text-muted-foreground">{isDark ? "Soft dark" : "Pastel light"}</div>
-          </div>
-          <div className="text-xs text-muted-foreground">Tap to switch</div>
-        </button>
+
 
         <div className="flex items-center px-5 py-4 gap-3">
           <Wallet className="size-5 text-emerald-700" />
